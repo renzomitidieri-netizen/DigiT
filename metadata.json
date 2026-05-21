@@ -1,0 +1,6 @@
+{
+  "name": "Digitalizador de Documentos",
+  "description": "Una aplicación web para digitalizar fotos y PDFs usando Gemini 3 Flash, convirtiéndolos en texto plano.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
