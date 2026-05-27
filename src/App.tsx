@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
+import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, FileText, FileImage, Copy, Check, Loader2, Download, Camera, Clock, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// @ts-ignore
 const modelConfig = import.meta.env.VITE_GEMINI_MODEL || "gemini-3-flash-preview";
+
 
 interface HistoryItem {
   id: string;
@@ -111,25 +111,26 @@ export default function App() {
       const base64Data = await fileToBase64(file);
       const mimeType = file.type;
       
-      const response = await ai.models.generateContent({
-        model: modelConfig,
-        contents: {
-          parts: [
-            {
-              inlineData: {
-                mimeType,
-                data: base64Data,
-              },
-            },
-            {
-              text: "Extrae todo el texto de este documento o imagen. Devuelve únicamente el texto extraído, tal como aparece. No incluyas comentarios, explicaciones, markdown de bloques de código, ni introducciones. Omití cualquier tipo de decoración.",
-            },
-          ],
+      const response = await fetch("/api/extract", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          mimeType,
+          base64Data,
+          model: modelConfig,
+        }),
       });
 
-      if (response.text) {
-        const text = response.text.trim();
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al extraer el texto.");
+      }
+
+      if (data.text) {
+        const text = data.text.trim();
         setExtractedText(text);
         
         const newId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
